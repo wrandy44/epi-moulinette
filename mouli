@@ -1,0 +1,180 @@
+#!/bin/bash
+## mouli.sh for azd in /home/debrau_c/bin
+## 
+## Made by Carl DEBRAUWERE
+## Login   <debrau_c@epitech.net>
+## 
+## Started on  Thu Feb 16 23:06:34 2017 Carl DEBRAUWERE
+## Last update Wed Feb 22 03:21:47 2017 debrau_c
+##
+
+usage(){
+    echo "Usage : $1 [binaire] [binExemple] [fileInput] [options]"
+    echo -e "\t - binaire : "
+    echo -e "\t - binExemple : "
+    echo -e "\t - fileInput : write line by line, formatted by input:arg"
+    echo -e "\t - options :"
+    echo -e "\t\t-v :Show diff "
+    echo -e "\t\t-m [path] : Make Input File, default path if not renseigned"
+    echo -e "\t\t-c: color mode"
+    
+}
+
+get_opts(){
+    local -a opts=()
+    j=0
+    for i in $@;do
+	if [ "${i:0:1}" == "-" ] ;then
+	    opts[$j]=$i
+	    let "j=$j+1"
+	fi
+    done
+    echo ${opts[@]}
+}	 
+	 
+check_opts(){
+    j=0;
+    declare i
+    for i in $@;do
+	if [ $j -ne 0 ] && [ "$i" == "$1" ];then
+	    return 1
+	fi
+	let "j=$j+1"
+    done
+    return 0
+}
+
+#to avoid error when av[0] spawm
+modify_content(){
+    fileE=$1
+    fileM=$2
+    fE=$(cat $fileE)
+    toTest=${fE:0:${#binEx}}
+    if [ "$toTest" == "$binEx" ];then
+	
+	rm -rf $fileE
+	echo "${fE:${#binEx}}" > $fileE
+    fi
+    fM=$(cat $fileM)    
+    toTestM=${fM:0:${#bin}}
+    if [ "$toTestM" == "$bin" ];then
+	rm -rf $fileM
+	echo "${fM:${#bin}}" > $fileM
+    fi
+}
+
+make_arg(){
+    i=0
+    while read -r line
+    do
+	in=$(echo $line | cut -d: -f1)
+	arg=$(echo $line | cut -d: -f2)
+	pastEx="$bin"
+	cp $bin "testa"
+	$(echo -e "$in" | ./testa $arg &> $dir"traceM"$i)
+	myRet=$?
+	if [ "$myRet" == "139" ];then
+	    echo "SIGSEV" >> $dir"traceM"$i
+	fi
+	rm -rf testa
+	cp $binEx "testa"
+	if [[ ${pastEx:0:1} == "/" ]] ;then
+	    $(echo -e "$in" | ./testa $arg &> $dir"traceE"$i)
+	else
+	    $(echo -e "$in" | ./testa $arg &> $dir"traceE"$i)
+	fi
+	exRet=$?
+	rm -rf testa
+	if [ $exRet != $myRet ] && [ $myRet -ne 139 ]; then
+	    echo "BAD_RET($i)>$exRet:$myRet"
+	fi	
+	let "i=$i+1"
+    done < "$fileI"
+    return $i
+}
+
+color_diff(){
+    while read -r line;do
+	if [ ${line:0:1} == "<" ];then
+	    echo -e "${REDLC}$line${NOC}"
+	elif [ ${line:0:1} == ">" ];then
+	    echo -e "${GREENLC}$line${NOC}"
+	else
+	    echo -e "\033[0;36m$line${NOC}"
+	fi
+    done < $dir"traceG"$1
+    echo $file;
+}
+
+no_color_diff(){
+    cat $dir"traceG"$1
+}
+
+check_diff(){
+    i=0;
+    while [ $i -lt $1 ]
+    do
+	diff $dir"traceM"$i $dir"traceE"$i > $dir"traceG"$i
+	if [ "$?" -ne "0" ];then
+	    echo -e "${REDLC}KO${NOC}"
+	    check_opts "-v" $opts
+	    if [ "$?" == "1" ]; then
+		echo -e "${REDC}< your${NOC}, ${GREENLC}> ex${NOC}"
+		check_opts "-c" $opts
+		if [ $? -eq 1 ]; then
+		    color_diff $i
+		else
+		    no_color_diff $i
+		fi
+	    fi
+	else
+	    echo -e "${GREENC}OK${NOC}"
+	fi
+	
+	let "i=$i+1"
+    done
+    
+}
+
+main(){
+    declare -a opts=()
+    if [ $# -lt 3 ];then
+	usage $0
+	exit
+    fi
+    opts=$(get_opts $@)
+    check_opts "-m" $opts
+    if [ "$?" == "1" ];then
+	i=0;
+	touch "$1"
+	while [ $i -lt 4 ];do
+	    echo -n "Input n°$i : "
+	    read s
+	    echo -n "$s:" >> "$1" 
+	    echo -n "arg (can separate by \" \") n°$i : "
+	    read s
+	    echo $s >> "$1"
+	    let "i=$i+1"
+	done
+	
+	exit
+    fi
+    mkdir $dir
+    make_arg
+    check_diff $?
+    rm -rf $dir
+}
+
+REDC='\033[0;31m'
+REDLC='\033[1;31m'
+GREENC='\033[0;32m'
+GREENLC='\033[0;32m'
+NOC='\033[0m'
+bin="./$1"
+binEx="$2"
+fileI="$3"
+dir="trace_mouli_test/"
+option="$4"
+path="DefaultMouliInput"
+
+main $@
