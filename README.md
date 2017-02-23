@@ -30,5 +30,5 @@ Fichiers de test :
   - lance les binaires, compare les sorties, cache/montre les diffs
   - Montre le segfault quand il y a 
   - Compare valeur de retour du programme
-  - Creation de fichier binaire, avec nom par defaut ou definissable
+  - Creation de fichier input, avec nom par defaut ou definissable
   
