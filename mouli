@@ -5,7 +5,7 @@
 ## Login   <debrau_c@epitech.net>
 ## 
 ## Started on  Thu Feb 16 23:06:34 2017 Carl DEBRAUWERE
-## Last update Thu Feb 23 19:00:17 2017 debrau_c
+## Last update Thu Feb 23 19:27:21 2017 debrau_c
 ##
 
 usage(){
@@ -70,17 +70,15 @@ make_arg(){
 	in=$(echo $line | cut -d: -f1)
 	arg=$(echo $line | cut -d: -f2)
 	pastEx="$bin"
-	cp $bin "testa"
-	$(echo -e "$in" | ./testa $arg 1> $dir"traceOM"$i)
-	$(echo -e "$in" | ./testa $arg 2> $dir"traceEM"$i)
+	cp $bin testa
+	echo -e $in | ./testa $arg 1> $dir"traceEM"$i 2> $dir"traceOM"$i
 	myRet=$?
 	if [ "$myRet" == "139" ];then
 	    echo "SIGSEV" >> $dir"traceM"$i
 	fi
 	rm -rf testa
-	cp $binEx "testa"
-	$(echo -e "$in" | ./testa $arg 1> $dir"traceOE"$i)
-	$(echo -e "$in" | ./testa $arg 2> $dir"traceEE"$i)
+	cp $binEx testa
+	echo -e $in | ./testa $arg 1> $dir"traceEE"$i 2> $dir"traceOE"$i
 	exRet=$?
 	rm -rf testa
 	if [ $exRet != $myRet ] && [ $myRet -ne 139 ]; then
