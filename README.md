@@ -19,9 +19,11 @@ Fichiers de test :
   
   hello:world$
   
-  Avec un fichier comme celui la en argument, les binaires seront tester de la maniere suivante : =
-    1) echo "input" | bin av0 av1 av2
-    2) : echo "hello" | bin world
+  Avec un fichier comme celui la en argument, les binaires seront tester de la maniere suivante :
+  
+  1) echo "input" | bin av0 av1 av2
+  
+  2) : echo "hello" | bin world
     
     
  V0.01:
