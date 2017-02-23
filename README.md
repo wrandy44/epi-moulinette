@@ -2,9 +2,9 @@
 Moulinette For test Epitech project
 
 Options :
-  -v : mode verbeux, montre les diffs
-  -c : affiche les couleurs
-  -m : Creer un fichier d'input, l'option vous demande de rentrer 3 input et 3 series d'arguments
+  - -v : mode verbeux, montre les diffs
+  - -c : affiche les couleurs
+  - -m : Creer un fichier d'input, l'option vous demande de rentrer 3 input et 3 series d'arguments
   
   
 Fichiers de test :
@@ -18,8 +18,8 @@ Fichiers de test :
   hello:world$
   
   Avec un fichier comme celui la en argument, les binaires seront tester de la maniere suivante : =
-    test °1 : echo "input" | bin av0 av1 av2
-    test °2 : echo "hello" | bin world
+    1) echo "input" | bin av0 av1 av2
+    2) : echo "hello" | bin world
     
     
  V0.01:
