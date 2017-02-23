@@ -5,7 +5,7 @@
 ## Login   <debrau_c@epitech.net>
 ## 
 ## Started on  Thu Feb 16 23:06:34 2017 Carl DEBRAUWERE
-## Last update Wed Feb 22 03:21:47 2017 debrau_c
+## Last update Thu Feb 23 19:00:17 2017 debrau_c
 ##
 
 usage(){
@@ -71,18 +71,16 @@ make_arg(){
 	arg=$(echo $line | cut -d: -f2)
 	pastEx="$bin"
 	cp $bin "testa"
-	$(echo -e "$in" | ./testa $arg &> $dir"traceM"$i)
+	$(echo -e "$in" | ./testa $arg 1> $dir"traceOM"$i)
+	$(echo -e "$in" | ./testa $arg 2> $dir"traceEM"$i)
 	myRet=$?
 	if [ "$myRet" == "139" ];then
 	    echo "SIGSEV" >> $dir"traceM"$i
 	fi
 	rm -rf testa
 	cp $binEx "testa"
-	if [[ ${pastEx:0:1} == "/" ]] ;then
-	    $(echo -e "$in" | ./testa $arg &> $dir"traceE"$i)
-	else
-	    $(echo -e "$in" | ./testa $arg &> $dir"traceE"$i)
-	fi
+	$(echo -e "$in" | ./testa $arg 1> $dir"traceOE"$i)
+	$(echo -e "$in" | ./testa $arg 2> $dir"traceEE"$i)
 	exRet=$?
 	rm -rf testa
 	if [ $exRet != $myRet ] && [ $myRet -ne 139 ]; then
@@ -94,6 +92,7 @@ make_arg(){
 }
 
 color_diff(){
+    #standard
     while read -r line;do
 	if [ ${line:0:1} == "<" ];then
 	    echo -e "${REDLC}$line${NOC}"
@@ -102,19 +101,33 @@ color_diff(){
 	else
 	    echo -e "\033[0;36m$line${NOC}"
 	fi
-    done < $dir"traceG"$1
+    done < $dir"traceOG"$1
+#error
+    while read -r line;do
+	if [ ${line:0:1} == "<" ];then
+	    echo -e "${REDLC}$line${NOC}"
+	elif [ ${line:0:1} == ">" ];then
+	    echo -e "${GREENLC}$line${NOC}"
+	else
+	    echo -e "\033[0;36m$line${NOC}"
+	fi
+    done < $dir"traceEG"$1
+
+    
     echo $file;
 }
 
 no_color_diff(){
-    cat $dir"traceG"$1
+    cat $dir"traceOG"$1
+    cat $dir"traceEG"$1
 }
 
 check_diff(){
     i=0;
     while [ $i -lt $1 ]
     do
-	diff $dir"traceM"$i $dir"traceE"$i > $dir"traceG"$i
+	diff $dir"traceOM"$i $dir"traceOE"$i > $dir"traceOG"$i
+	diff $dir"traceEM"$i $dir"traceEE"$i > $dir"traceEG"$i
 	if [ "$?" -ne "0" ];then
 	    echo -e "${REDLC}KO${NOC}"
 	    check_opts "-v" $opts
