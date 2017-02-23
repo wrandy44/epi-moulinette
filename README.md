@@ -14,7 +14,9 @@ Fichiers de test :
   [inputs]:[arg]
   Ex : 
   $ cat fileI -e
+  
   input1:av0 av1 av2$
+  
   hello:world$
   
   Avec un fichier comme celui la en argument, les binaires seront tester de la maniere suivante : =
