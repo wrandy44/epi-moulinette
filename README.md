@@ -13,10 +13,8 @@ Fichiers de test :
   Ils sont composé de la facon suivante :
   [inputs]:[arg]
   Ex : 
-  $ cat fileI -e
-  
+  $ cat fileI -e  
   input1:av0 av1 av2$
-  
   hello:world$
   
   Avec un fichier comme celui la en argument, les binaires seront tester de la maniere suivante : =
