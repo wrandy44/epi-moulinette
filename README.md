@@ -17,13 +17,13 @@ Fichiers de test :
   
   input1:av0 av1 av2$
   
-  hello:world$
+  hello\n:world$
   
   Avec un fichier comme celui la en argument, les binaires seront tester de la maniere suivante :
   
-  1) echo "input" | bin av0 av1 av2
+  1) echo -e "input" | bin av0 av1 av2
   
-  2) : echo "hello" | bin world
+  2) echo -e "hello\n" | bin world
     
     
  V0.01:
