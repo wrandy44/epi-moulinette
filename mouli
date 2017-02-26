@@ -1,12 +1,4 @@
 #!/bin/bash
-## mouli.sh for azd in /home/debrau_c/bin
-## 
-## Made by Carl DEBRAUWERE
-## Login   <debrau_c@epitech.net>
-## 
-## Started on  Thu Feb 16 23:06:34 2017 Carl DEBRAUWERE
-## Last update Thu Feb 23 19:27:21 2017 debrau_c
-##
 
 usage(){
     echo "Usage : $1 [binaire] [binExemple] [fileInput] [options]"
@@ -22,6 +14,7 @@ usage(){
 
 get_opts(){
     local -a opts=()
+    declare j
     j=0
     for i in $@;do
 	if [ "${i:0:1}" == "-" ] ;then
@@ -33,8 +26,9 @@ get_opts(){
 }	 
 	 
 check_opts(){
-    j=0;
+    declare j
     declare i
+    j=0;
     for i in $@;do
 	if [ $j -ne 0 ] && [ "$i" == "$1" ];then
 	    return 1
@@ -44,46 +38,44 @@ check_opts(){
     return 0
 }
 
-#to avoid error when av[0] spawm
-modify_content(){
-    fileE=$1
-    fileM=$2
-    fE=$(cat $fileE)
-    toTest=${fE:0:${#binEx}}
-    if [ "$toTest" == "$binEx" ];then
-	
-	rm -rf $fileE
-	echo "${fE:${#binEx}}" > $fileE
-    fi
-    fM=$(cat $fileM)    
-    toTestM=${fM:0:${#bin}}
-    if [ "$toTestM" == "$bin" ];then
-	rm -rf $fileM
-	echo "${fM:${#bin}}" > $fileM
-    fi
-}
-
 make_arg(){
+    declare myRet
+    declare line
+    declare in arg
     i=0
     while read -r line
     do
-	in=$(echo $line | cut -d: -f1)
-	arg=$(echo $line | cut -d: -f2)
-	pastEx="$bin"
-	cp $bin testa
-	echo -e $in | ./testa $arg 1> $dir"traceEM"$i 2> $dir"traceOM"$i
-	myRet=$?
-	if [ "$myRet" == "139" ];then
-	    echo "SIGSEV" >> $dir"traceM"$i
+	line=$(echo $line | cut -f1 -d#)
+	if [ "${line:0:1}" != ">" ] && [ ! -z "$line" ];then
+	    in=$(echo $line | cut -d: -f1)
+	    arg=$(echo $line | cut -d: -f2)
+	    pastEx="$bin"
+	    cp $bin testa
+	    $(echo -e $in | ./testa $arg 1> $dir"traceEM"$i 2> $dir"traceOM"$i)
+	    myRet=$?
+	    if [ "$myRet" == "139" ];then
+		echo "SIGSEV"
+	    fi
+	    rm -rf testa
+	    k=0
+	    for t in $(echo $binEx | tr " " "\n");do
+		if [ "$k" == "0" ]; then
+		    binEx2=$t
+		else
+		    argEx[k]=$t		    
+		fi
+		let "k=1+$k"
+	    done
+	    cp $binEx2 testa
+	    echo -e $in | ./testa ${argEx[*]} $arg 1> $dir"traceEE"$i 2> $dir"traceOE"$i
+	    exRet=$?
+	    rm -rf testa
+	    if [ $exRet != $myRet ] && [ $myRet -ne 139 ]; then
+		echo "BAD_RET($i)>$exRet:$myRet"
+	    fi	
+	elif [ "${line:0:1}" == ">" ]; then
+	    echo "$line" > $dir"info"$i
 	fi
-	rm -rf testa
-	cp $binEx testa
-	echo -e $in | ./testa $arg 1> $dir"traceEE"$i 2> $dir"traceOE"$i
-	exRet=$?
-	rm -rf testa
-	if [ $exRet != $myRet ] && [ $myRet -ne 139 ]; then
-	    echo "BAD_RET($i)>$exRet:$myRet"
-	fi	
 	let "i=$i+1"
     done < "$fileI"
     return $i
@@ -100,7 +92,7 @@ color_diff(){
 	    echo -e "\033[0;36m$line${NOC}"
 	fi
     done < $dir"traceOG"$1
-#error
+    #error
     while read -r line;do
 	if [ ${line:0:1} == "<" ];then
 	    echo -e "${REDLC}$line${NOC}"
@@ -109,9 +101,7 @@ color_diff(){
 	else
 	    echo -e "\033[0;36m$line${NOC}"
 	fi
-    done < $dir"traceEG"$1
-
-    
+    done < $dir"traceEG"$1    
     echo $file;
 }
 
@@ -121,30 +111,37 @@ no_color_diff(){
 }
 
 check_diff(){
+    declare i tmpRetI myRet info
     i=0;
     while [ $i -lt $1 ]
     do
-	diff $dir"traceOM"$i $dir"traceOE"$i > $dir"traceOG"$i
-	diff $dir"traceEM"$i $dir"traceEE"$i > $dir"traceEG"$i
-	if [ "$?" -ne "0" ];then
-	    echo -e "${REDLC}KO${NOC}"
-	    check_opts "-v" $opts
-	    if [ "$?" == "1" ]; then
-		echo -e "${REDC}< your${NOC}, ${GREENLC}> ex${NOC}"
-		check_opts "-c" $opts
-		if [ $? -eq 1 ]; then
-		    color_diff $i
-		else
-		    no_color_diff $i
+	if [ -f $dir"traceOM"$i ] && [ -f $dir"traceOE"$i ] &&
+	   [ -f $dir"traceEM"$i ] && [ -f $dir"traceEE"$i ];then
+	    $(diff $dir"traceOM"$i $dir"traceOE"$i > $dir"traceOG"$i)
+	    tmpRetI=$?
+	    $(diff $dir"traceEM"$i $dir"traceEE"$i > $dir"traceEG"$i)
+	    myRet=$?
+	    if [ "$myRet" == "1" ] || [ "$tmpRetI" == "1" ];then
+		echo -e "${REDLC}KO${NOC}"
+		check_opts "-v" $opts
+		if [ "$?" == "1" ]; then
+		    echo -e "${REDC}< your${NOC}, ${GREENLC}> ex${NOC}"
+		    check_opts "-c" $opts
+		    if [ $? -eq 1 ]; then
+			color_diff $i
+		    else
+			no_color_diff $i
+		    fi
 		fi
+	    else
+		echo -e "${GREENC}OK${NOC}"
 	    fi
-	else
-	    echo -e "${GREENC}OK${NOC}"
+	elif [ -f $dir"info"$i ];then
+	    info=$(cat $dir"info"$i)
+	    echo ${info:1}
 	fi
-	
 	let "i=$i+1"
     done
-    
 }
 
 main(){
